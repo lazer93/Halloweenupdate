@@ -1,5 +1,6 @@
 --//======================================================
 --// LAZER MADE THIS TO FN 😂
+--// TARGET SCAN + TELEPORT + INTERACT
 --// LocalScript
 --// StarterPlayer > StarterPlayerScripts
 --//======================================================
@@ -21,6 +22,9 @@ local autoScanEnabled = false
 local autoScanRunning = false
 local instantInteractEnabled = false
 
+local SCAN_DELAY = 0.1
+local TELEPORT_OFFSET = Vector3.new(0, 3, 0)
+
 local originalHoldDurations = {}
 
 --======================================================
@@ -40,6 +44,7 @@ toggle.TextColor3 = Color3.new(1, 1, 1)
 toggle.Text = "OPEN SCANNER"
 toggle.Font = Enum.Font.GothamBold
 toggle.TextSize = 14
+toggle.AutoButtonColor = true
 toggle.Parent = gui
 
 Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 8)
@@ -50,6 +55,7 @@ window.Position = UDim2.fromScale(0.5, 0.5)
 window.AnchorPoint = Vector2.new(0.5, 0.5)
 window.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 window.Visible = false
+window.Active = true
 window.Parent = gui
 
 Instance.new("UICorner", window).CornerRadius = UDim.new(0, 12)
@@ -79,6 +85,7 @@ local dragStart
 local startPosition
 
 title.InputBegan:Connect(function(input)
+
 	if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
 
@@ -87,14 +94,17 @@ title.InputBegan:Connect(function(input)
 		startPosition = window.Position
 
 		input.Changed:Connect(function()
+
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
 			end
+
 		end)
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
+
 	if not dragging then
 		return
 	end
@@ -107,6 +117,7 @@ UserInputService.InputChanged:Connect(function(input)
 		window.Position = UDim2.new(
 			startPosition.X.Scale,
 			startPosition.X.Offset + delta.X,
+
 			startPosition.Y.Scale,
 			startPosition.Y.Offset + delta.Y
 		)
@@ -125,12 +136,13 @@ close.Text = "X"
 close.TextColor3 = Color3.new(1, 1, 1)
 close.Font = Enum.Font.GothamBold
 close.TextSize = 16
+close.AutoButtonColor = true
 close.Parent = window
 
 Instance.new("UICorner", close).CornerRadius = UDim.new(0, 8)
 
 --======================================================
--- GREEN AUTO SCAN BUTTON
+-- AUTO SCAN BUTTON
 --======================================================
 
 local scan = Instance.new("TextButton")
@@ -142,12 +154,13 @@ scan.Text = "🎃 AUTO SCAN: OFF"
 scan.TextColor3 = Color3.new(1, 1, 1)
 scan.TextSize = 16
 scan.Font = Enum.Font.GothamBold
+scan.AutoButtonColor = true
 scan.Parent = window
 
 Instance.new("UICorner", scan).CornerRadius = UDim.new(0, 10)
 
 --======================================================
--- BLUE INSTANT INTERACT BUTTON
+-- INSTANT INTERACT BUTTON
 --======================================================
 
 local instantInteract = Instance.new("TextButton")
@@ -159,6 +172,7 @@ instantInteract.Text = "INSTANT INTERACT: OFF"
 instantInteract.TextColor3 = Color3.new(1, 1, 1)
 instantInteract.TextSize = 15
 instantInteract.Font = Enum.Font.GothamBold
+instantInteract.AutoButtonColor = true
 instantInteract.Parent = window
 
 Instance.new("UICorner", instantInteract).CornerRadius = UDim.new(0, 10)
@@ -178,10 +192,11 @@ status.Font = Enum.Font.Gotham
 status.Parent = window
 
 --======================================================
--- HELPERS
+-- MATCHING
 --======================================================
 
 local function matches(text)
+
 	if not text then
 		return false
 	end
@@ -192,7 +207,16 @@ local function matches(text)
 		or string.find(text, "pick", 1, true)
 end
 
+--======================================================
+-- GET POSITION
+--======================================================
+
 local function getPosition(object)
+
+	if not object then
+		return nil
+	end
+
 	if object:IsA("BasePart") then
 		return object.Position
 
@@ -206,7 +230,12 @@ local function getPosition(object)
 	return nil
 end
 
+--======================================================
+-- FIND TARGET BELONGING TO PROMPT
+--======================================================
+
 local function findTarget(prompt)
+
 	local current = prompt
 
 	while current and current ~= Workspace do
@@ -225,7 +254,16 @@ local function findTarget(prompt)
 	return nil
 end
 
+--======================================================
+-- HIGHLIGHT
+--======================================================
+
 local function addHighlight(target)
+
+	if not target then
+		return
+	end
+
 	local old = target:FindFirstChild(HIGHLIGHT_NAME)
 
 	if old then
@@ -243,10 +281,11 @@ local function addHighlight(target)
 end
 
 --======================================================
--- FIND NEAREST TARGET
+-- FIND NEAREST MATCHING TARGET
 --======================================================
 
 local function findNearestTarget()
+
 	local character = player.Character
 
 	if not character then
@@ -259,8 +298,8 @@ local function findNearestTarget()
 		return nil, nil
 	end
 
-	local nearestPrompt
-	local nearestTarget
+	local nearestPrompt = nil
+	local nearestTarget = nil
 	local nearestDistance = math.huge
 
 	for _, object in ipairs(Workspace:GetDescendants()) do
@@ -269,16 +308,24 @@ local function findNearestTarget()
 			return nil, nil
 		end
 
-		if object:IsA("ProximityPrompt") and object.Enabled then
+		if object:IsA("ProximityPrompt")
+			and object.Enabled then
 
-			if matches(object.Name)
+			local isMatch =
+				matches(object.Name)
 				or matches(object.ActionText)
 				or matches(object.ObjectText)
-				or (object.Parent and matches(object.Parent.Name)) then
+				or (
+					object.Parent
+					and matches(object.Parent.Name)
+				)
+
+			if isMatch then
 
 				local target = findTarget(object)
 
 				if target then
+
 					local position = getPosition(target)
 
 					if position then
@@ -287,11 +334,12 @@ local function findNearestTarget()
 							(root.Position - position).Magnitude
 
 						if distance < nearestDistance then
+
 							nearestDistance = distance
 							nearestPrompt = object
 							nearestTarget = target
-						end
 
+						end
 					end
 				end
 			end
@@ -302,10 +350,61 @@ local function findNearestTarget()
 end
 
 --======================================================
--- AUTO SCAN + TELEPORT
+-- INTERACT WITH THE EXACT PROMPT FOUND
+--======================================================
+
+local function interactWithPrompt(prompt)
+
+	if not autoScanEnabled then
+		return
+	end
+
+	if not prompt then
+		return
+	end
+
+	if not prompt.Parent then
+		return
+	end
+
+	if not prompt.Enabled then
+		return
+	end
+
+	-- Instant mode only changes the prompt that was found.
+	if instantInteractEnabled then
+
+		if originalHoldDurations[prompt] == nil then
+			originalHoldDurations[prompt] =
+				prompt.HoldDuration
+		end
+
+		prompt.HoldDuration = 0
+	end
+
+	-- Interact with THIS target's prompt.
+	prompt:InputHoldBegin()
+
+	local holdTime = prompt.HoldDuration
+
+	if holdTime > 0 then
+		task.wait(holdTime)
+	end
+
+	if prompt.Parent then
+		prompt:InputHoldEnd()
+	end
+end
+
+--======================================================
+-- SCAN -> TELEPORT -> SAME TARGET INTERACT
 --======================================================
 
 local function scanAndCollect()
+
+	if not autoScanEnabled then
+		return
+	end
 
 	local character = player.Character
 
@@ -321,39 +420,59 @@ local function scanAndCollect()
 		return
 	end
 
-	local nearestPrompt, nearestTarget = findNearestTarget()
+	-- Find the target and its OWN prompt.
+	local prompt, target = findNearestTarget()
 
 	if not autoScanEnabled then
 		return
 	end
 
-	if not nearestPrompt or not nearestTarget then
+	if not prompt or not target then
 		status.Text = "❌ No Pumpkin/Pick found."
 		return
 	end
 
-	local position = getPosition(nearestTarget)
+	local position = getPosition(target)
 
 	if not position then
 		return
 	end
 
-	addHighlight(nearestTarget)
+	addHighlight(target)
 
-	-- Stop immediately if toggled off
+	--==================================================
+	-- TELEPORT TO THE TARGET
+	--==================================================
+
 	if not autoScanEnabled then
 		return
 	end
 
 	root.CFrame =
-		CFrame.new(position + Vector3.new(0, 3, 0))
+		CFrame.new(position + TELEPORT_OFFSET)
 
-	status.Text = "🎃 PICKING UP..."
+	status.Text = "🎃 Teleported to target."
 
+	-- Give the teleport a tiny moment to register.
 	task.wait(0.05)
 
-	if autoScanEnabled then
-		status.Text = "🔄 SCANNING AGAIN..."
+	if not autoScanEnabled then
+		return
+	end
+
+	--==================================================
+	-- ONLY INTERACT WITH THE PROMPT WE JUST FOUND
+	--==================================================
+
+	if prompt.Parent and prompt.Enabled then
+
+		status.Text = "⚡ Picking up target..."
+
+		interactWithPrompt(prompt)
+
+	else
+
+		status.Text = "Target prompt disappeared."
 	end
 end
 
@@ -376,7 +495,7 @@ local function startAutoScan()
 			scanAndCollect()
 
 			if autoScanEnabled then
-				task.wait(0.1)
+				task.wait(SCAN_DELAY)
 			end
 		end
 
@@ -418,18 +537,25 @@ local function setInstantInteract(enabled)
 	end
 
 	if enabled then
-		instantInteract.Text = "INSTANT INTERACT: ON"
+
+		instantInteract.Text =
+			"INSTANT INTERACT: ON"
+
 		instantInteract.BackgroundColor3 =
 			Color3.fromRGB(25, 170, 80)
+
 	else
-		instantInteract.Text = "INSTANT INTERACT: OFF"
+
+		instantInteract.Text =
+			"INSTANT INTERACT: OFF"
+
 		instantInteract.BackgroundColor3 =
 			Color3.fromRGB(35, 110, 220)
 	end
 end
 
 --======================================================
--- NEW PROXIMITY PROMPTS
+-- NEW PROMPTS
 --======================================================
 
 Workspace.DescendantAdded:Connect(function(object)
@@ -445,22 +571,28 @@ Workspace.DescendantAdded:Connect(function(object)
 end)
 
 --======================================================
--- BUTTON EVENTS
+-- CLOSE BUTTON
 --======================================================
 
 close.MouseButton1Click:Connect(function()
 
-	-- Stop auto scan when closing
 	autoScanEnabled = false
-	autoScanRunning = false
 
 	scan.Text = "🎃 AUTO SCAN: OFF"
+
 	scan.BackgroundColor3 =
 		Color3.fromRGB(45, 145, 70)
+
+	status.Text =
+		"⏹️ Auto scan stopped."
 
 	window.Visible = false
 	toggle.Text = "OPEN SCANNER"
 end)
+
+--======================================================
+-- OPEN / CLOSE GUI
+--======================================================
 
 toggle.MouseButton1Click:Connect(function()
 
@@ -473,32 +605,44 @@ toggle.MouseButton1Click:Connect(function()
 	end
 end)
 
--- GREEN BUTTON
+--======================================================
+-- AUTO SCAN TOGGLE
+--======================================================
+
 scan.MouseButton1Click:Connect(function()
 
 	autoScanEnabled = not autoScanEnabled
 
 	if autoScanEnabled then
 
-		scan.Text = "🎃 AUTO SCAN: ON"
+		scan.Text =
+			"🎃 AUTO SCAN: ON"
+
 		scan.BackgroundColor3 =
 			Color3.fromRGB(25, 170, 80)
 
-		status.Text = "⚡ Auto scan started."
+		status.Text =
+			"⚡ Scanning..."
 
 		startAutoScan()
 
 	else
 
-		scan.Text = "🎃 AUTO SCAN: OFF"
+		scan.Text =
+			"🎃 AUTO SCAN: OFF"
+
 		scan.BackgroundColor3 =
 			Color3.fromRGB(45, 145, 70)
 
-		status.Text = "⏹️ Auto scan stopped."
+		status.Text =
+			"⏹️ Auto scan stopped."
 	end
 end)
 
--- BLUE BUTTON
+--======================================================
+-- INSTANT INTERACT TOGGLE
+--======================================================
+
 instantInteract.MouseButton1Click:Connect(function()
 
 	setInstantInteract(
@@ -506,8 +650,13 @@ instantInteract.MouseButton1Click:Connect(function()
 	)
 
 	if instantInteractEnabled then
-		status.Text = "⚡ Instant interact enabled."
+
+		status.Text =
+			"⚡ Instant interact enabled."
+
 	else
-		status.Text = "Instant interact disabled."
+
+		status.Text =
+			"Instant interact disabled."
 	end
 end)
