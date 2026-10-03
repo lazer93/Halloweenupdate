@@ -1,6 +1,7 @@
 --//======================================================
 --// LAZER MADE THIS TO FN 😂
 --// COMPLETE ALL-IN-ONE LOCAL SCRIPT
+--// LM USER + OWNER/COOWNER + SCANNER
 --//======================================================
 
 local Players = game:GetService("Players")
@@ -23,6 +24,11 @@ local OWNER_USERNAME = "krampus_159"
 local COOWNER_USERNAME = "ZvajCPuukT"
 
 local NAMETAG_NAME = "LazerOwnerNametag"
+
+-- LM USER SETTINGS
+local LM_TAG_NAME = "LazerLMUserNametag"
+local LM_HIGHLIGHT_NAME = "LazerLMUserHighlight"
+local LM_TAG_TEXT = "LM USER🎃!!"
 
 local SCAN_DELAY = 0.1
 local TELEPORT_OFFSET = Vector3.new(0, 3, 0)
@@ -61,6 +67,18 @@ local function getRank(targetPlayer)
 end
 
 --======================================================
+-- IS OWNER / CO OWNER
+--======================================================
+
+local function isSpecialPlayer(targetPlayer)
+
+	local rank = getRank(targetPlayer)
+
+	return rank == "OWNER"
+		or rank == "COOWNER"
+end
+
+--======================================================
 -- OWNER / CO OWNER NAMETAG
 --======================================================
 
@@ -84,26 +102,45 @@ local function createOwnerNametag(targetPlayer)
 		return
 	end
 
-	local oldTag = head:FindFirstChild(NAMETAG_NAME)
+	local oldTag =
+		head:FindFirstChild(NAMETAG_NAME)
 
 	if oldTag then
 		oldTag:Destroy()
 	end
 
-	local billboard = Instance.new("BillboardGui")
+	local billboard =
+		Instance.new("BillboardGui")
 
-	billboard.Name = NAMETAG_NAME
-	billboard.Adornee = head
-	billboard.Size = UDim2.fromOffset(250, 60)
-	billboard.StudsOffset = Vector3.new(0, 3.2, 0)
-	billboard.AlwaysOnTop = true
-	billboard.MaxDistance = 1000
-	billboard.Parent = head
+	billboard.Name =
+		NAMETAG_NAME
 
-	local label = Instance.new("TextLabel")
+	billboard.Adornee =
+		head
 
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 1
+	billboard.Size =
+		UDim2.fromOffset(250, 60)
+
+	billboard.StudsOffset =
+		Vector3.new(0, 3.2, 0)
+
+	billboard.AlwaysOnTop =
+		true
+
+	billboard.MaxDistance =
+		1000
+
+	billboard.Parent =
+		head
+
+	local label =
+		Instance.new("TextLabel")
+
+	label.Size =
+		UDim2.fromScale(1, 1)
+
+	label.BackgroundTransparency =
+		1
 
 	if rank == "OWNER" then
 		label.Text = "🏆 OWNER"
@@ -111,17 +148,226 @@ local function createOwnerNametag(targetPlayer)
 		label.Text = "🏆 CO OWNER"
 	end
 
-	label.Font = Enum.Font.GothamBold
-	label.TextColor3 = Color3.fromRGB(255, 255, 0)
-	label.TextSize = 27
-	label.TextStrokeColor3 = Color3.fromRGB(255, 180, 0)
-	label.TextStrokeTransparency = 0
+	label.Font =
+		Enum.Font.GothamBold
 
-	label.Parent = billboard
+	label.TextColor3 =
+		Color3.fromRGB(255, 255, 0)
+
+	label.TextSize =
+		27
+
+	label.TextStrokeColor3 =
+		Color3.fromRGB(255, 180, 0)
+
+	label.TextStrokeTransparency =
+		0
+
+	label.Parent =
+		billboard
 end
 
 --======================================================
--- SETUP NAMETAG
+-- LM USER NAMETAG
+--======================================================
+
+local function createLMUserNametag(targetPlayer)
+
+	-- Owner and co-owner do NOT receive LM tag
+	if isSpecialPlayer(targetPlayer) then
+		return
+	end
+
+	local character =
+		targetPlayer.Character
+
+	if not character then
+		return
+	end
+
+	local head =
+		character:FindFirstChild("Head")
+
+	if not head then
+		return
+	end
+
+	-- Remove duplicate
+	local oldTag =
+		head:FindFirstChild(LM_TAG_NAME)
+
+	if oldTag then
+		oldTag:Destroy()
+	end
+
+	local billboard =
+		Instance.new("BillboardGui")
+
+	billboard.Name =
+		LM_TAG_NAME
+
+	billboard.Adornee =
+		head
+
+	billboard.Size =
+		UDim2.fromOffset(210, 45)
+
+	billboard.StudsOffset =
+		Vector3.new(0, 2.2, 0)
+
+	billboard.AlwaysOnTop =
+		true
+
+	billboard.MaxDistance =
+		1000
+
+	billboard.Parent =
+		head
+
+	local label =
+		Instance.new("TextLabel")
+
+	label.Size =
+		UDim2.fromScale(1, 1)
+
+	label.BackgroundTransparency =
+		1
+
+	label.Text =
+		LM_TAG_TEXT
+
+	label.Font =
+		Enum.Font.GothamBold
+
+	label.TextColor3 =
+		Color3.fromRGB(255, 170, 0)
+
+	label.TextSize =
+		22
+
+	label.TextStrokeColor3 =
+		Color3.fromRGB(0, 0, 0)
+
+	label.TextStrokeTransparency =
+		0
+
+	label.Parent =
+		billboard
+end
+
+--======================================================
+-- LM USER HIGHLIGHT
+--======================================================
+
+local function createLMUserHighlight(targetPlayer)
+
+	-- Owner and co-owner do NOT receive LM highlight
+	if isSpecialPlayer(targetPlayer) then
+		return
+	end
+
+	local character =
+		targetPlayer.Character
+
+	if not character then
+		return
+	end
+
+	local oldHighlight =
+		character:FindFirstChild(
+			LM_HIGHLIGHT_NAME
+		)
+
+	if oldHighlight then
+		oldHighlight:Destroy()
+	end
+
+	local highlight =
+		Instance.new("Highlight")
+
+	highlight.Name =
+		LM_HIGHLIGHT_NAME
+
+	highlight.Adornee =
+		character
+
+	highlight.FillColor =
+		Color3.fromRGB(255, 140, 0)
+
+	highlight.FillTransparency =
+		0.65
+
+	highlight.OutlineColor =
+		Color3.fromRGB(255, 170, 0)
+
+	highlight.OutlineTransparency =
+		0
+
+	highlight.DepthMode =
+		Enum.HighlightDepthMode.AlwaysOnTop
+
+	highlight.Parent =
+		character
+end
+
+--======================================================
+-- CREATE LM VISUALS
+--======================================================
+
+local function setupLMUser(targetPlayer)
+
+	if not targetPlayer then
+		return
+	end
+
+	if isSpecialPlayer(targetPlayer) then
+		return
+	end
+
+	-- This client is considered an LM user.
+	-- Without a server relay, this can only be known
+	-- locally on this client.
+
+	if targetPlayer == player then
+
+		if targetPlayer.Character then
+
+			task.spawn(function()
+
+				task.wait(0.3)
+
+				createLMUserNametag(
+					targetPlayer
+				)
+
+				createLMUserHighlight(
+					targetPlayer
+				)
+
+			end)
+		end
+
+		targetPlayer.CharacterAdded:Connect(
+			function()
+
+				task.wait(0.5)
+
+				createLMUserNametag(
+					targetPlayer
+				)
+
+				createLMUserHighlight(
+					targetPlayer
+				)
+
+			end
+		)
+
+	end
+end
+
+--======================================================
+-- SETUP OWNER NAMETAG
 --======================================================
 
 local function setupOwnerNametag(targetPlayer)
@@ -137,32 +383,48 @@ local function setupOwnerNametag(targetPlayer)
 			task.wait(0.3)
 
 			if targetPlayer.Parent then
-				createOwnerNametag(targetPlayer)
+				createOwnerNametag(
+					targetPlayer
+				)
 			end
 
 		end)
 	end
 
-	targetPlayer.CharacterAdded:Connect(function()
+	targetPlayer.CharacterAdded:Connect(
+		function()
 
-		task.wait(0.5)
+			task.wait(0.5)
 
-		createOwnerNametag(targetPlayer)
+			createOwnerNametag(
+				targetPlayer
+			)
 
-	end)
+		end
+	)
 end
 
 --======================================================
 -- NOTIFICATION GUI
 --======================================================
 
-local notificationGui = Instance.new("ScreenGui")
+local notificationGui =
+	Instance.new("ScreenGui")
 
-notificationGui.Name = "LazerOwnerNotifications"
-notificationGui.ResetOnSpawn = false
-notificationGui.IgnoreGuiInset = true
-notificationGui.DisplayOrder = 999
-notificationGui.Parent = playerGui
+notificationGui.Name =
+	"LazerOwnerNotifications"
+
+notificationGui.ResetOnSpawn =
+	false
+
+notificationGui.IgnoreGuiInset =
+	true
+
+notificationGui.DisplayOrder =
+	999
+
+notificationGui.Parent =
+	playerGui
 
 local shownNotifications = {}
 
@@ -172,14 +434,14 @@ local shownNotifications = {}
 
 local function showNotification(notificationType)
 
-	local notification = Instance.new("TextLabel")
+	local notification =
+		Instance.new("TextLabel")
 
-	-- Small / thin
-	notification.Size = UDim2.fromOffset(235, 32)
+	notification.Size =
+		UDim2.fromOffset(235, 32)
 
 	if notificationType == "OWNER" then
 
-		-- Right side, slightly lower
 		notification.Position =
 			UDim2.new(1, -243, 0, 70)
 
@@ -188,7 +450,6 @@ local function showNotification(notificationType)
 
 	elseif notificationType == "COOWNER" then
 
-		-- Right side, lower with space between
 		notification.Position =
 			UDim2.new(1, -243, 0, 112)
 
@@ -198,53 +459,73 @@ local function showNotification(notificationType)
 	else
 
 		notification:Destroy()
+
 		return
 	end
 
 	notification.BackgroundColor3 =
 		Color3.fromRGB(20, 20, 20)
 
-	notification.BackgroundTransparency = 0.08
+	notification.BackgroundTransparency =
+		0.08
 
 	notification.TextColor3 =
 		Color3.fromRGB(255, 255, 255)
 
-	notification.TextSize = 11
+	notification.TextSize =
+		11
 
 	notification.Font =
 		Enum.Font.GothamBold
 
-	notification.TextWrapped = false
+	notification.TextWrapped =
+		false
 
-	notification.TextStrokeTransparency = 0.5
+	notification.TextStrokeTransparency =
+		0.5
 
-	notification.ZIndex = 999
+	notification.ZIndex =
+		999
 
-	notification.Parent = notificationGui
+	notification.Parent =
+		notificationGui
 
-	local corner = Instance.new("UICorner")
+	local corner =
+		Instance.new("UICorner")
 
 	corner.CornerRadius =
 		UDim.new(0, 7)
 
-	corner.Parent = notification
+	corner.Parent =
+		notification
 
-	local stroke = Instance.new("UIStroke")
+	local stroke =
+		Instance.new("UIStroke")
 
-	stroke.Thickness = 1
-	stroke.Color = Color3.fromRGB(255, 255, 0)
-	stroke.Transparency = 0.15
-	stroke.Parent = notification
+	stroke.Thickness =
+		1
 
-	task.delay(5, function()
+	stroke.Color =
+		Color3.fromRGB(255, 255, 0)
 
-		if notification
-			and notification.Parent then
+	stroke.Transparency =
+		0.15
 
-			notification:Destroy()
+	stroke.Parent =
+		notification
 
+	task.delay(
+		5,
+		function()
+
+			if notification
+				and notification.Parent then
+
+				notification:Destroy()
+
+			end
 		end
-	end)
+	)
 end
 
 --======================================================
@@ -253,33 +534,45 @@ end
 
 local function notifyForPlayer(targetPlayer)
 
-	local rank = getRank(targetPlayer)
+	local rank =
+		getRank(targetPlayer)
 
 	if not rank then
 		return
 	end
 
-	if shownNotifications[targetPlayer.UserId] then
+	if shownNotifications[
+		targetPlayer.UserId
+	] then
 		return
 	end
 
-	shownNotifications[targetPlayer.UserId] = true
+	shownNotifications[
+		targetPlayer.UserId
+	] = true
 
-	task.delay(1, function()
+	task.delay(
+		1,
+		function()
 
-		if targetPlayer.Parent then
+			if targetPlayer.Parent then
 
-			if rank == "OWNER" then
+				if rank == "OWNER" then
 
-				showNotification("OWNER")
+					showNotification(
+						"OWNER"
+					)
 
-			elseif rank == "COOWNER" then
+				elseif rank == "COOWNER" then
 
-				showNotification("COOWNER")
+					showNotification(
+						"COOWNER"
+					)
 
+				end
 			end
 		end
-	end)
+	)
 end
 
 --======================================================
@@ -290,93 +583,154 @@ for _, targetPlayer in ipairs(
 	Players:GetPlayers()
 ) do
 
-	setupOwnerNametag(targetPlayer)
+	setupOwnerNametag(
+		targetPlayer
+	)
 
 end
+
+--======================================================
+-- LOCAL LM USER
+--======================================================
+
+setupLMUser(player)
 
 --======================================================
 -- PLAYER JOIN
 --======================================================
 
-Players.PlayerAdded:Connect(function(targetPlayer)
+Players.PlayerAdded:Connect(
+	function(targetPlayer)
 
-	setupOwnerNametag(targetPlayer)
+		setupOwnerNametag(
+			targetPlayer
+		)
 
-	notifyForPlayer(targetPlayer)
+		notifyForPlayer(
+			targetPlayer
+		)
 
-end)
+	end
+)
 
 --======================================================
 -- LOCAL OWNER / CO OWNER
 --======================================================
 
-task.delay(1, function()
+task.delay(
+	1,
+	function()
 
-	local myRank = getRank(player)
+		local myRank =
+			getRank(player)
 
-	if myRank == "OWNER" then
+		if myRank == "OWNER" then
 
-		showNotification("OWNER")
+			showNotification(
+				"OWNER"
+			)
 
-	elseif myRank == "COOWNER" then
+		elseif myRank == "COOWNER" then
 
-		showNotification("COOWNER")
+			showNotification(
+				"COOWNER"
+			)
 
+		end
 	end
-end)
+)
 
 --======================================================
 -- PLAYER LEAVING
 --======================================================
 
-Players.PlayerRemoving:Connect(function(targetPlayer)
+Players.PlayerRemoving:Connect(
+	function(targetPlayer)
 
-	shownNotifications[targetPlayer.UserId] = nil
+		shownNotifications[
+			targetPlayer.UserId
+		] = nil
 
-	local character = targetPlayer.Character
+		local character =
+			targetPlayer.Character
 
-	if character then
+		if character then
 
-		local head =
-			character:FindFirstChild("Head")
+			local head =
+				character:FindFirstChild(
+					"Head"
+				)
 
-		if head then
+			if head then
 
-			local tag =
-				head:FindFirstChild(NAMETAG_NAME)
+				local tag =
+					head:FindFirstChild(
+						NAMETAG_NAME
+					)
 
-			if tag then
-				tag:Destroy()
+				if tag then
+					tag:Destroy()
+				end
+
+				local lmTag =
+					head:FindFirstChild(
+						LM_TAG_NAME
+					)
+
+				if lmTag then
+					lmTag:Destroy()
+				end
+			end
+
+			local lmHighlight =
+				character:FindFirstChild(
+					LM_HIGHLIGHT_NAME
+				)
+
+			if lmHighlight then
+				lmHighlight:Destroy()
 			end
 		end
 	end
-end)
+)
 
 --======================================================
 -- MAIN GUI
 --======================================================
 
 local oldGui =
-	playerGui:FindFirstChild(GUI_NAME)
+	playerGui:FindFirstChild(
+		GUI_NAME
+	)
 
 if oldGui then
 	oldGui:Destroy()
 end
 
-local gui = Instance.new("ScreenGui")
+local gui =
+	Instance.new("ScreenGui")
 
-gui.Name = GUI_NAME
-gui.ResetOnSpawn = false
-gui.Parent = playerGui
+gui.Name =
+	GUI_NAME
+
+gui.ResetOnSpawn =
+	false
+
+gui.Parent =
+	playerGui
 
 --======================================================
 -- OPEN SCANNER
 --======================================================
 
-local toggle = Instance.new("TextButton")
+local toggle =
+	Instance.new("TextButton")
 
-toggle.Size = UDim2.fromOffset(125, 34)
-toggle.Position = UDim2.fromOffset(8, 8)
+toggle.Size =
+	UDim2.fromOffset(125, 34)
+
+toggle.Position =
+	UDim2.fromOffset(8, 8)
 
 toggle.BackgroundColor3 =
 	Color3.fromRGB(30, 30, 30)
@@ -384,22 +738,36 @@ toggle.BackgroundColor3 =
 toggle.TextColor3 =
 	Color3.fromRGB(255, 255, 255)
 
-toggle.Text = "OPEN SCANNER"
+toggle.Text =
+	"OPEN SCANNER"
 
-toggle.Font = Enum.Font.GothamBold
-toggle.TextSize = 12
-toggle.AutoButtonColor = true
-toggle.Active = true
-toggle.Parent = gui
+toggle.Font =
+	Enum.Font.GothamBold
 
-Instance.new("UICorner", toggle).CornerRadius =
+toggle.TextSize =
+	12
+
+toggle.AutoButtonColor =
+	true
+
+toggle.Active =
+	true
+
+toggle.Parent =
+	gui
+
+Instance.new(
+	"UICorner",
+	toggle
+).CornerRadius =
 	UDim.new(0, 7)
 
 --======================================================
 -- MAIN WINDOW
 --======================================================
 
-local window = Instance.new("Frame")
+local window =
+	Instance.new("Frame")
 
 window.Size =
 	UDim2.fromOffset(300, 235)
@@ -413,18 +781,27 @@ window.AnchorPoint =
 window.BackgroundColor3 =
 	Color3.fromRGB(20, 20, 20)
 
-window.Visible = false
-window.Active = true
-window.Parent = gui
+window.Visible =
+	false
 
-Instance.new("UICorner", window).CornerRadius =
+window.Active =
+	true
+
+window.Parent =
+	gui
+
+Instance.new(
+	"UICorner",
+	window
+).CornerRadius =
 	UDim.new(0, 10)
 
 --======================================================
 -- TITLE
 --======================================================
 
-local title = Instance.new("TextLabel")
+local title =
+	Instance.new("TextLabel")
 
 title.Size =
 	UDim2.new(1, -50, 0, 35)
@@ -432,7 +809,8 @@ title.Size =
 title.Position =
 	UDim2.fromOffset(10, 3)
 
-title.BackgroundTransparency = 1
+title.BackgroundTransparency =
+	1
 
 title.Text =
 	"Lazer made this to fn😂"
@@ -440,14 +818,20 @@ title.Text =
 title.TextColor3 =
 	Color3.fromRGB(255, 255, 255)
 
-title.TextSize = 15
-title.Font = Enum.Font.GothamBold
+title.TextSize =
+	15
+
+title.Font =
+	Enum.Font.GothamBold
 
 title.TextXAlignment =
 	Enum.TextXAlignment.Left
 
-title.Active = true
-title.Parent = window
+title.Active =
+	true
+
+title.Parent =
+	window
 
 --======================================================
 -- DRAGGING
@@ -457,61 +841,75 @@ local dragging = false
 local dragStart
 local startPosition
 
-title.InputBegan:Connect(function(input)
+title.InputBegan:Connect(
+	function(input)
 
-	if input.UserInputType ==
-		Enum.UserInputType.MouseButton1
-		or
-		input.UserInputType ==
-		Enum.UserInputType.Touch then
+		if input.UserInputType ==
+			Enum.UserInputType.MouseButton1
+			or
+			input.UserInputType ==
+			Enum.UserInputType.Touch then
 
-		dragging = true
+			dragging = true
 
-		dragStart = input.Position
-		startPosition = window.Position
+			dragStart =
+				input.Position
 
-		input.Changed:Connect(function()
+			startPosition =
+				window.Position
 
-			if input.UserInputState ==
-				Enum.UserInputState.End then
+			input.Changed:Connect(
+				function()
 
-				dragging = false
+					if input.UserInputState ==
+						Enum.UserInputState.End then
 
-			end
-		end)
-	end
-end)
+						dragging = false
 
-UserInputService.InputChanged:Connect(function(input)
-
-	if not dragging then
-		return
-	end
-
-	if input.UserInputType ==
-		Enum.UserInputType.MouseMovement
-		or
-		input.UserInputType ==
-		Enum.UserInputType.Touch then
-
-		local delta =
-			input.Position - dragStart
-
-		window.Position =
-			UDim2.new(
-				startPosition.X.Scale,
-				startPosition.X.Offset + delta.X,
-				startPosition.Y.Scale,
-				startPosition.Y.Offset + delta.Y
+					end
+				end
 			)
+		end
 	end
-end)
+)
+
+UserInputService.InputChanged:Connect(
+	function(input)
+
+		if not dragging then
+			return
+		end
+
+		if input.UserInputType ==
+			Enum.UserInputType.MouseMovement
+			or
+			input.UserInputType ==
+			Enum.UserInputType.Touch then
+
+			local delta =
+				input.Position -
+				dragStart
+
+			window.Position =
+				UDim2.new(
+					startPosition.X.Scale,
+					startPosition.X.Offset +
+						delta.X,
+
+					startPosition.Y.Scale,
+					startPosition.Y.Offset +
+						delta.Y
+				)
+		end
+	end
+)
 
 --======================================================
 -- CLOSE BUTTON
 --======================================================
 
-local close = Instance.new("TextButton")
+local close =
+	Instance.new("TextButton")
 
 close.Size =
 	UDim2.fromOffset(30, 30)
@@ -522,25 +920,39 @@ close.Position =
 close.BackgroundColor3 =
 	Color3.fromRGB(170, 45, 45)
 
-close.Text = "X"
+close.Text =
+	"X"
 
 close.TextColor3 =
 	Color3.fromRGB(255, 255, 255)
 
-close.Font = Enum.Font.GothamBold
-close.TextSize = 14
-close.AutoButtonColor = true
-close.Active = true
-close.Parent = window
+close.Font =
+	Enum.Font.GothamBold
 
-Instance.new("UICorner", close).CornerRadius =
+close.TextSize =
+	14
+
+close.AutoButtonColor =
+	true
+
+close.Active =
+	true
+
+close.Parent =
+	window
+
+Instance.new(
+	"UICorner",
+	close
+).CornerRadius =
 	UDim.new(0, 7)
 
 --======================================================
 -- AUTO SCAN
 --======================================================
 
-local scan = Instance.new("TextButton")
+local scan =
+	Instance.new("TextButton")
 
 scan.Size =
 	UDim2.fromOffset(250, 50)
@@ -560,13 +972,25 @@ scan.Text =
 scan.TextColor3 =
 	Color3.fromRGB(255, 255, 255)
 
-scan.TextSize = 14
-scan.Font = Enum.Font.GothamBold
-scan.AutoButtonColor = true
-scan.Active = true
-scan.Parent = window
+scan.TextSize =
+	14
 
-Instance.new("UICorner", scan).CornerRadius =
+scan.Font =
+	Enum.Font.GothamBold
+
+scan.AutoButtonColor =
+	true
+
+scan.Active =
+	true
+
+scan.Parent =
+	window
+
+Instance.new(
+	"UICorner",
+	scan
+).CornerRadius =
 	UDim.new(0, 8)
 
 --======================================================
@@ -594,11 +1018,20 @@ instantInteract.Text =
 instantInteract.TextColor3 =
 	Color3.fromRGB(255, 255, 255)
 
-instantInteract.TextSize = 13
-instantInteract.Font = Enum.Font.GothamBold
-instantInteract.AutoButtonColor = true
-instantInteract.Active = true
-instantInteract.Parent = window
+instantInteract.TextSize =
+	13
+
+instantInteract.Font =
+	Enum.Font.GothamBold
+
+instantInteract.AutoButtonColor =
+	true
+
+instantInteract.Active =
+	true
+
+instantInteract.Parent =
+	window
 
 Instance.new(
 	"UICorner",
@@ -631,11 +1064,20 @@ discordButton.Text =
 discordButton.TextColor3 =
 	Color3.fromRGB(255, 255, 255)
 
-discordButton.TextSize = 13
-discordButton.Font = Enum.Font.GothamBold
-discordButton.AutoButtonColor = true
-discordButton.Active = true
-discordButton.Parent = window
+discordButton.TextSize =
+	13
+
+discordButton.Font =
+	Enum.Font.GothamBold
+
+discordButton.AutoButtonColor =
+	true
+
+discordButton.Active =
+	true
+
+discordButton.Parent =
+	window
 
 Instance.new(
 	"UICorner",
@@ -656,17 +1098,26 @@ status.Size =
 status.Position =
 	UDim2.new(0, 10, 1, -33)
 
-status.BackgroundTransparency = 1
+status.BackgroundTransparency =
+	1
 
-status.Text = "Ready."
+status.Text =
+	"Ready."
 
 status.TextColor3 =
 	Color3.fromRGB(190, 190, 190)
 
-status.TextSize = 11
-status.Font = Enum.Font.Gotham
-status.TextWrapped = true
-status.Parent = window
+status.TextSize =
+	11
+
+status.Font =
+	Enum.Font.Gotham
+
+status.TextWrapped =
+	true
+
+status.Parent =
+	window
 
 --======================================================
 -- MATCH TEXT
@@ -731,7 +1182,8 @@ end
 
 local function findTarget(prompt)
 
-	local current = prompt
+	local current =
+		prompt
 
 	while current
 		and current ~= Workspace do
@@ -746,14 +1198,15 @@ local function findTarget(prompt)
 			return current
 		end
 
-		current = current.Parent
+		current =
+			current.Parent
 	end
 
 	return nil
 end
 
 --======================================================
--- HIGHLIGHT
+-- PUMPKIN HIGHLIGHT
 --======================================================
 
 local function addHighlight(target)
@@ -783,7 +1236,8 @@ local function addHighlight(target)
 	highlight.FillColor =
 		Color3.fromRGB(255, 140, 0)
 
-	highlight.FillTransparency = 0.25
+	highlight.FillTransparency =
+		0.25
 
 	highlight.OutlineColor =
 		Color3.fromRGB(255, 255, 0)
@@ -791,7 +1245,8 @@ local function addHighlight(target)
 	highlight.DepthMode =
 		Enum.HighlightDepthMode.AlwaysOnTop
 
-	highlight.Parent = target
+	highlight.Parent =
+		target
 end
 
 --======================================================
@@ -862,8 +1317,7 @@ local function findNearestTarget()
 
 						local distance =
 							(
-								root.Position
-								-
+								root.Position -
 								position
 							).Magnitude
 
@@ -920,7 +1374,8 @@ local function interactWithPrompt(prompt)
 				prompt.HoldDuration
 		end
 
-		prompt.HoldDuration = 0
+		prompt.HoldDuration =
+			0
 	end
 
 	prompt:InputHoldBegin()
@@ -1042,25 +1497,31 @@ local function startAutoScan()
 		return
 	end
 
-	autoScanRunning = true
+	autoScanRunning =
+		true
 
-	task.spawn(function()
+	task.spawn(
+		function()
 
-		while autoScanEnabled do
+			while autoScanEnabled do
 
-			scanAndCollect()
+				scanAndCollect()
 
-			if autoScanEnabled then
-				task.wait(SCAN_DELAY)
+				if autoScanEnabled then
+					task.wait(
+						SCAN_DELAY
+					)
+				end
 			end
+
+			autoScanRunning =
+				false
+
+			status.Text =
+				"⏹️ Auto scan stopped."
+
 		end
-
-		autoScanRunning = false
-
-		status.Text =
-			"⏹️ Auto scan stopped."
-
-	end)
+	)
 end
 
 --======================================================
@@ -1089,7 +1550,8 @@ local function setInstantInteract(enabled)
 						object.HoldDuration
 				end
 
-				object.HoldDuration = 0
+				object.HoldDuration =
+					0
 
 			else
 
@@ -1144,7 +1606,8 @@ Workspace.DescendantAdded:Connect(
 			originalHoldDurations[object] =
 				object.HoldDuration
 
-			object.HoldDuration = 0
+			object.HoldDuration =
+				0
 		end
 	end
 )
@@ -1182,7 +1645,8 @@ discordButton.MouseButton1Click:Connect(
 close.MouseButton1Click:Connect(
 	function()
 
-		autoScanEnabled = false
+		autoScanEnabled =
+			false
 
 		scan.Text =
 			"🎃 AUTO SCAN: OFF"
@@ -1197,7 +1661,8 @@ close.MouseButton1Click:Connect(
 		status.Text =
 			"⏹️ Auto scan stopped."
 
-		window.Visible = false
+		window.Visible =
+			false
 
 		toggle.Text =
 			"OPEN SCANNER"
@@ -1305,3 +1770,18 @@ instantInteract.MouseButton1Click:Connect(
 print(
 	"[Lazer] Complete script loaded."
 )
+
+print(
+	"[Lazer] LM USER🎃!! system loaded."
+)
+
+--======================================================
+-- IMPORTANT:
+-- A LocalScript cannot replicate the LM USER tag to
+-- another player's client by itself.
+--
+-- The local player gets the LM tag/highlight above.
+-- To make OWNER, CO OWNER, and other LM users see
+-- EACH OTHER'S LM tags, a server/network relay is
+-- required.
+--======================================================
