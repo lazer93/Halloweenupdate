@@ -1,8 +1,8 @@
 --//======================================================
 --// LAZER MADE THIS TO FN 😂
 --// COMPLETE ALL-IN-ONE LOCAL SCRIPT
---// Scanner + GUI + Owner/Co Owner Tags + Notifications
---// StarterPlayer > StarterPlayerScripts
+--// Scanner + Auto Scan + Instant Interact
+--// Owner/Co Owner Nametags + Join Notifications
 --//======================================================
 
 local Players = game:GetService("Players")
@@ -19,22 +19,15 @@ local playerGui = player:WaitForChild("PlayerGui")
 local GUI_NAME = "LazerMadeThisToFN"
 local HIGHLIGHT_NAME = "FastPumpkinHighlight"
 
-local DISCORD_LINK =
-	"https://discord.gg/8gYCY6WeRU"
+local DISCORD_LINK = "https://discord.gg/8gYCY6WeRU"
 
-local OWNER_USERNAME =
-	"krampus_159"
+local OWNER_USERNAME = "krampus_159"
+local COOWNER_USERNAME = "ZvajCPuukT"
 
-local COOWNER_USERNAME =
-	"ZvajCPuukT"
-
-local NAMETAG_NAME =
-	"LazerOwnerNametag"
+local NAMETAG_NAME = "LazerOwnerNametag"
 
 local SCAN_DELAY = 0.1
-
-local TELEPORT_OFFSET =
-	Vector3.new(0, 3, 0)
+local TELEPORT_OFFSET = Vector3.new(0, 3, 0)
 
 --======================================================
 -- STATES
@@ -46,9 +39,6 @@ local instantInteractEnabled = false
 
 local originalHoldDurations = {}
 
--- Used to know when Owner/Co Owner were already seen
-local knownPlayers = {}
-
 --======================================================
 -- RANK
 --======================================================
@@ -59,18 +49,14 @@ local function getRank(targetPlayer)
 		return nil
 	end
 
-	local username =
-		string.lower(targetPlayer.Name)
+	local username = string.lower(targetPlayer.Name)
 
-	if username ==
-		string.lower(OWNER_USERNAME) then
+	if username == string.lower(OWNER_USERNAME) then
+		return "OWNER"
+	end
 
-		return "🏆 Owner"
-
-	elseif username ==
-		string.lower(COOWNER_USERNAME) then
-
-		return "🏆 Co Owner"
+	if username == string.lower(COOWNER_USERNAME) then
+		return "COOWNER"
 	end
 
 	return nil
@@ -78,90 +64,69 @@ end
 
 --======================================================
 -- OWNER / CO OWNER NAMETAG
+--
+-- IMPORTANT:
+-- This is created LOCALLY for whoever has this Lua loaded.
+-- The Owner/Co Owner does NOT need the Lua loaded.
 --======================================================
 
 local function createOwnerNametag(targetPlayer)
 
-	local rank =
-		getRank(targetPlayer)
+	local rank = getRank(targetPlayer)
 
 	if not rank then
 		return
 	end
 
-	local character =
-		targetPlayer.Character
+	local character = targetPlayer.Character
 
 	if not character then
 		return
 	end
 
-	local head =
-		character:FindFirstChild("Head")
+	local head = character:FindFirstChild("Head")
 
 	if not head then
 		return
 	end
 
-	local oldTag =
-		head:FindFirstChild(NAMETAG_NAME)
+	local oldTag = head:FindFirstChild(NAMETAG_NAME)
 
 	if oldTag then
 		oldTag:Destroy()
 	end
 
-	local billboard =
-		Instance.new("BillboardGui")
+	local billboard = Instance.new("BillboardGui")
 
-	billboard.Name =
-		NAMETAG_NAME
+	billboard.Name = NAMETAG_NAME
+	billboard.Adornee = head
+	billboard.Size = UDim2.fromOffset(250, 60)
+	billboard.StudsOffset = Vector3.new(0, 3.2, 0)
+	billboard.AlwaysOnTop = true
+	billboard.MaxDistance = 1000
+	billboard.Parent = head
 
-	billboard.Adornee =
-		head
+	local label = Instance.new("TextLabel")
 
-	billboard.Size =
-		UDim2.fromOffset(150, 35)
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
 
-	billboard.StudsOffset =
-		Vector3.new(0, 2.8, 0)
+	if rank == "OWNER" then
+		label.Text = "🏆 OWNER"
+	else
+		label.Text = "🏆 CO OWNER"
+	end
 
-	billboard.AlwaysOnTop =
-		true
+	label.Font = Enum.Font.GothamBold
 
-	billboard.MaxDistance =
-		1000
+	-- NEON YELLOW
+	label.TextColor3 = Color3.fromRGB(255, 255, 0)
 
-	billboard.Parent =
-		head
+	label.TextSize = 27
+	label.TextStrokeColor3 = Color3.fromRGB(255, 180, 0)
+	label.TextStrokeTransparency = 0
 
-	local label =
-		Instance.new("TextLabel")
-
-	label.Size =
-		UDim2.fromScale(1, 1)
-
-	label.BackgroundTransparency =
-		1
-
-	label.Text =
-		rank
-
-	-- Normal font
-	label.Font =
-		Enum.Font.Gotham
-
-	-- White text
-	label.TextColor3 =
-		Color3.new(1, 1, 1)
-
-	label.TextSize =
-		16
-
-	label.TextStrokeTransparency =
-		0
-
-	label.Parent =
-		billboard
+	label.Parent = billboard
 end
 
 --======================================================
@@ -174,201 +139,139 @@ local function setupOwnerNametag(targetPlayer)
 		return
 	end
 
+	local function addTag()
+
+		task.wait(0.3)
+
+		if targetPlayer.Parent then
+			createOwnerNametag(targetPlayer)
+		end
+	end
+
 	if targetPlayer.Character then
-
-		task.defer(function()
-
-			task.wait(0.3)
-
-			createOwnerNametag(
-				targetPlayer
-			)
-
-		end)
+		task.spawn(addTag)
 	end
 
 	targetPlayer.CharacterAdded:Connect(function()
 
 		task.wait(0.5)
 
-		createOwnerNametag(
-			targetPlayer
-		)
+		createOwnerNametag(targetPlayer)
 
 	end)
 end
 
 --======================================================
--- SETUP EXISTING PLAYERS
+-- CHECK ALL CURRENT PLAYERS
 --======================================================
 
-for _, targetPlayer in ipairs(
-	Players:GetPlayers()
-) do
+for _, targetPlayer in ipairs(Players:GetPlayers()) do
 
-	knownPlayers[targetPlayer] = true
+	setupOwnerNametag(targetPlayer)
 
-	setupOwnerNametag(
-		targetPlayer
-	)
 end
 
 --======================================================
 -- NOTIFICATION GUI
 --======================================================
 
-local notificationGui =
-	Instance.new("ScreenGui")
+local notificationGui = Instance.new("ScreenGui")
 
-notificationGui.Name =
-	"LazerOwnerNotifications"
-
-notificationGui.ResetOnSpawn =
-	false
-
-notificationGui.IgnoreGuiInset =
-	true
-
-notificationGui.Parent =
-	playerGui
+notificationGui.Name = "LazerOwnerNotifications"
+notificationGui.ResetOnSpawn = false
+notificationGui.IgnoreGuiInset = true
+notificationGui.Parent = playerGui
 
 --======================================================
 -- SHOW NOTIFICATION
 --======================================================
 
-local function showNotification(
-	notificationType,
-	targetPlayer
-)
+local function showNotification(notificationType)
 
-	local username =
-		targetPlayer.Name
+	local notification = Instance.new("TextLabel")
 
-	-- Don't show yourself your own join notification
-	if targetPlayer == player then
-		return
-	end
+	notification.Size = UDim2.fromOffset(300, 55)
 
-	local notification =
-		Instance.new("TextLabel")
-
-	notification.Size =
-		UDim2.fromOffset(
-			260,
-			60
-		)
-
-	-- Owner = LEFT
+	-- OWNER = TOP LEFT
 	if notificationType == "OWNER" then
 
-		notification.Position =
-			UDim2.new(
-				0,
-				15,
-				0,
-				80
-			)
-
-		notification.Text =
-			"👑 Owner of script\n"
-			.. username
-			.. " joined!"
-
-	-- Co Owner = RIGHT
-	elseif notificationType == "COOWNER" then
-
-		notification.Position =
-			UDim2.new(
-				1,
-				-275,
-				0,
-				80
-			)
-
-		notification.Text =
-			"👑 Co Owner of script\n"
-			.. username
-			.. " joined!"
-
-	else
-
-		notification:Destroy()
-
-		return
-	end
-
-	notification.BackgroundColor3 =
-		Color3.fromRGB(
-			25,
-			25,
-			25
-		)
-
-	notification.BackgroundTransparency =
-		0.05
-
-	notification.TextColor3 =
-		Color3.new(
-			1,
-			1,
-			1
-		)
-
-	notification.TextSize =
-		14
-
-	notification.Font =
-		Enum.Font.GothamBold
-
-	notification.TextWrapped =
-		true
-
-	notification.TextStrokeTransparency =
-		0.5
-
-	notification.ZIndex =
-		100
-
-	notification.Parent =
-		notificationGui
-
-	local corner =
-		Instance.new("UICorner")
-
-	corner.CornerRadius =
-		UDim.new(
+		notification.Position = UDim2.new(
+			0,
+			10,
 			0,
 			10
 		)
 
-	corner.Parent =
-		notification
+		notification.Text =
+			"🏆Owner of script joined the server"
 
-	local stroke =
-		Instance.new("UIStroke")
+	-- CO OWNER = TOP RIGHT
+	elseif notificationType == "COOWNER" then
 
-	stroke.Thickness =
-		1
+		notification.Position = UDim2.new(
+			1,
+			-310,
+			0,
+			10
+		)
 
-	stroke.Transparency =
-		0.25
+		notification.Text =
+			"🏆Co Owner of script joined the server"
 
-	stroke.Parent =
-		notification
+	else
 
-	-- Remove after 5 seconds
-	task.delay(
-		5,
-		function()
+		notification:Destroy()
+		return
+	end
 
-			if notification
-				and notification.Parent then
+	notification.BackgroundColor3 =
+		Color3.fromRGB(20, 20, 20)
 
-				notification:Destroy()
-			end
+	notification.BackgroundTransparency = 0.05
+
+	notification.TextColor3 =
+		Color3.fromRGB(255, 255, 255)
+
+	notification.TextSize = 15
+
+	notification.Font =
+		Enum.Font.GothamBold
+
+	notification.TextWrapped = true
+
+	notification.TextStrokeTransparency = 0.4
+
+	notification.ZIndex = 100
+
+	notification.Parent = notificationGui
+
+	local corner = Instance.new("UICorner")
+
+	corner.CornerRadius =
+		UDim.new(0, 10)
+
+	corner.Parent = notification
+
+	local stroke = Instance.new("UIStroke")
+
+	stroke.Thickness = 2
+
+	stroke.Color =
+		Color3.fromRGB(255, 255, 0)
+
+	stroke.Transparency = 0.1
+
+	stroke.Parent = notification
+
+	task.delay(5, function()
+
+		if notification
+			and notification.Parent then
+
+			notification:Destroy()
 
 		end
-	)
+	end)
 end
 
 --======================================================
@@ -377,34 +280,29 @@ end
 
 Players.PlayerAdded:Connect(function(targetPlayer)
 
-	knownPlayers[targetPlayer] = true
+	local rank = getRank(targetPlayer)
 
-	setupOwnerNametag(
-		targetPlayer
-	)
+	-- Every client running this Lua creates
+	-- the Owner/Co Owner nametag locally.
+	setupOwnerNametag(targetPlayer)
 
-	local rank =
-		getRank(targetPlayer)
+	-- Everyone running this Lua gets the notification.
+	-- The joining player does NOT get their own notification.
+	if targetPlayer ~= player then
 
-	if rank == "🏆 Owner" then
+		if rank == "OWNER" then
 
-		-- Small delay so the player's GUI
-		-- has time to initialize
-		task.wait(1)
+			task.wait(1)
 
-		showNotification(
-			"OWNER",
-			targetPlayer
-		)
+			showNotification("OWNER")
 
-	elseif rank == "🏆 Co Owner" then
+		elseif rank == "COOWNER" then
 
-		task.wait(1)
+			task.wait(1)
 
-		showNotification(
-			"COOWNER",
-			targetPlayer
-		)
+			showNotification("COOWNER")
+
+		end
 	end
 end)
 
@@ -412,188 +310,113 @@ end)
 -- PLAYER REMOVING
 --======================================================
 
-Players.PlayerRemoving:Connect(function(
-	targetPlayer
-)
+Players.PlayerRemoving:Connect(function(targetPlayer)
 
-	knownPlayers[targetPlayer] = nil
+	local character = targetPlayer.Character
 
+	if character then
+
+		local head = character:FindFirstChild("Head")
+
+		if head then
+
+			local tag =
+				head:FindFirstChild(NAMETAG_NAME)
+
+			if tag then
+				tag:Destroy()
+			end
+		end
+	end
 end)
 
 --======================================================
 -- MAIN GUI
 --======================================================
 
-local oldGui =
-	playerGui:FindFirstChild(
-		GUI_NAME
-	)
+local oldGui = playerGui:FindFirstChild(GUI_NAME)
 
 if oldGui then
 	oldGui:Destroy()
 end
 
-local gui =
-	Instance.new("ScreenGui")
+local gui = Instance.new("ScreenGui")
 
-gui.Name =
-	GUI_NAME
-
-gui.ResetOnSpawn =
-	false
-
-gui.IgnoreGuiInset =
-	false
-
-gui.Parent =
-	playerGui
+gui.Name = GUI_NAME
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
 
 --======================================================
--- OPEN SCANNER BUTTON
+-- OPEN BUTTON
 --======================================================
 
-local toggle =
-	Instance.new("TextButton")
+local toggle = Instance.new("TextButton")
 
-toggle.Size =
-	UDim2.fromOffset(
-		125,
-		34
-	)
-
-toggle.Position =
-	UDim2.fromOffset(
-		8,
-		8
-	)
+toggle.Size = UDim2.fromOffset(125, 34)
+toggle.Position = UDim2.fromOffset(8, 8)
 
 toggle.BackgroundColor3 =
-	Color3.fromRGB(
-		30,
-		30,
-		30
-	)
+	Color3.fromRGB(30, 30, 30)
 
 toggle.TextColor3 =
-	Color3.new(
-		1,
-		1,
-		1
-	)
+	Color3.fromRGB(255, 255, 255)
 
-toggle.Text =
-	"OPEN SCANNER"
+toggle.Text = "OPEN SCANNER"
 
-toggle.Font =
-	Enum.Font.GothamBold
+toggle.Font = Enum.Font.GothamBold
+toggle.TextSize = 12
 
-toggle.TextSize =
-	12
+toggle.AutoButtonColor = true
+toggle.Active = true
+toggle.Parent = gui
 
-toggle.AutoButtonColor =
-	true
-
-toggle.Active =
-	true
-
-toggle.Parent =
-	gui
-
-Instance.new(
-		"UICorner",
-		toggle
-).CornerRadius =
-	UDim.new(
-		0,
-		7
-	)
+Instance.new("UICorner", toggle).CornerRadius =
+	UDim.new(0, 7)
 
 --======================================================
--- MAIN WINDOW
+-- WINDOW
 --======================================================
 
-local window =
-	Instance.new("Frame")
+local window = Instance.new("Frame")
 
-window.Size =
-	UDim2.fromOffset(
-		300,
-		235
-	)
+window.Size = UDim2.fromOffset(300, 235)
 
-window.Position =
-	UDim2.fromScale(
-		0.5,
-		0.5
-	)
+window.Position = UDim2.fromScale(0.5, 0.5)
 
 window.AnchorPoint =
-	Vector2.new(
-		0.5,
-		0.5
-	)
+	Vector2.new(0.5, 0.5)
 
 window.BackgroundColor3 =
-	Color3.fromRGB(
-		20,
-		20,
-		20
-	)
+	Color3.fromRGB(20, 20, 20)
 
-window.Visible =
-	false
+window.Visible = false
+window.Active = true
+window.Parent = gui
 
-window.Active =
-	true
-
-window.Parent =
-	gui
-
-Instance.new(
-		"UICorner",
-		window
-).CornerRadius =
-	UDim.new(
-		0,
-		10
-	)
+Instance.new("UICorner", window).CornerRadius =
+	UDim.new(0, 10)
 
 --======================================================
 -- TITLE
 --======================================================
 
-local title =
-	Instance.new("TextLabel")
+local title = Instance.new("TextLabel")
 
 title.Size =
-	UDim2.new(
-		1,
-		-50,
-		0,
-		35
-	)
+	UDim2.new(1, -50, 0, 35)
 
 title.Position =
-	UDim2.fromOffset(
-		10,
-		3
-	)
+	UDim2.fromOffset(10, 3)
 
-title.BackgroundTransparency =
-	1
+title.BackgroundTransparency = 1
 
 title.Text =
 	"Lazer made this to fn😂"
 
 title.TextColor3 =
-	Color3.new(
-		1,
-		1,
-		1
-	)
+	Color3.fromRGB(255, 255, 255)
 
-title.TextSize =
-	15
+title.TextSize = 15
 
 title.Font =
 	Enum.Font.GothamBold
@@ -601,11 +424,8 @@ title.Font =
 title.TextXAlignment =
 	Enum.TextXAlignment.Left
 
-title.Active =
-	true
-
-title.Parent =
-	window
+title.Active = true
+title.Parent = window
 
 --======================================================
 -- DRAGGING
@@ -619,370 +439,216 @@ title.InputBegan:Connect(function(input)
 
 	if input.UserInputType ==
 		Enum.UserInputType.MouseButton1
-		or
-		input.UserInputType ==
+		or input.UserInputType ==
 		Enum.UserInputType.Touch then
 
 		dragging = true
+		dragStart = input.Position
+		startPosition = window.Position
 
-		dragStart =
-			input.Position
+		input.Changed:Connect(function()
 
-		startPosition =
-			window.Position
+			if input.UserInputState ==
+				Enum.UserInputState.End then
 
-		input.Changed:Connect(
-			function()
-
-				if input.UserInputState ==
-					Enum.UserInputState.End then
-
-					dragging = false
-				end
+				dragging = false
 
 			end
-		)
+		end)
 	end
 end)
 
-UserInputService.InputChanged:Connect(
-	function(input)
+UserInputService.InputChanged:Connect(function(input)
 
-		if not dragging then
-			return
-		end
-
-		if input.UserInputType ==
-			Enum.UserInputType.MouseMovement
-			or
-			input.UserInputType ==
-			Enum.UserInputType.Touch then
-
-			local delta =
-				input.Position -
-				dragStart
-
-			window.Position =
-				UDim2.new(
-					startPosition.X.Scale,
-					startPosition.X.Offset +
-						delta.X,
-
-					startPosition.Y.Scale,
-					startPosition.Y.Offset +
-						delta.Y
-				)
-		end
+	if not dragging then
+		return
 	end
-)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseMovement
+		or input.UserInputType ==
+		Enum.UserInputType.Touch then
+
+		local delta =
+			input.Position - dragStart
+
+		window.Position =
+			UDim2.new(
+				startPosition.X.Scale,
+				startPosition.X.Offset + delta.X,
+
+				startPosition.Y.Scale,
+				startPosition.Y.Offset + delta.Y
+			)
+	end
+end)
 
 --======================================================
--- CLOSE BUTTON
+-- CLOSE
 --======================================================
 
-local close =
-	Instance.new("TextButton")
+local close = Instance.new("TextButton")
 
 close.Size =
-	UDim2.fromOffset(
-		30,
-		30
-	)
+	UDim2.fromOffset(30, 30)
 
 close.Position =
-	UDim2.new(
-		1,
-		-37,
-		0,
-		5
-	)
+	UDim2.new(1, -37, 0, 5)
 
 close.BackgroundColor3 =
-	Color3.fromRGB(
-		170,
-		45,
-		45
-	)
+	Color3.fromRGB(170, 45, 45)
 
-close.Text =
-	"X"
+close.Text = "X"
 
 close.TextColor3 =
-	Color3.new(
-		1,
-		1,
-		1
-	)
+	Color3.fromRGB(255, 255, 255)
 
 close.Font =
 	Enum.Font.GothamBold
 
-close.TextSize =
-	14
+close.TextSize = 14
 
-close.AutoButtonColor =
-	true
+close.AutoButtonColor = true
+close.Active = true
+close.Parent = window
 
-close.Active =
-	true
-
-close.Parent =
-	window
-
-Instance.new(
-		"UICorner",
-		close
-).CornerRadius =
-	UDim.new(
-		0,
-		7
-	)
+Instance.new("UICorner", close).CornerRadius =
+	UDim.new(0, 7)
 
 --======================================================
 -- AUTO SCAN BUTTON
 --======================================================
 
-local scan =
-	Instance.new("TextButton")
+local scan = Instance.new("TextButton")
 
 scan.Size =
-	UDim2.fromOffset(
-		250,
-		50
-	)
+	UDim2.fromOffset(250, 50)
 
 scan.Position =
-	UDim2.fromOffset(
-		150,
-		75
-	)
+	UDim2.fromOffset(150, 75)
 
 scan.AnchorPoint =
-	Vector2.new(
-		0.5,
-		0.5
-	)
+	Vector2.new(0.5, 0.5)
 
 scan.BackgroundColor3 =
-	Color3.fromRGB(
-		45,
-		145,
-		70
-	)
+	Color3.fromRGB(45, 145, 70)
 
 scan.Text =
 	"🎃 AUTO SCAN: OFF"
 
 scan.TextColor3 =
-	Color3.new(
-		1,
-		1,
-		1
-	)
+	Color3.fromRGB(255, 255, 255)
 
-scan.TextSize =
-	14
+scan.TextSize = 14
 
 scan.Font =
 	Enum.Font.GothamBold
 
-scan.AutoButtonColor =
-	true
+scan.AutoButtonColor = true
+scan.Active = true
+scan.Parent = window
 
-scan.Active =
-	true
-
-scan.Parent =
-	window
-
-Instance.new(
-		"UICorner",
-		scan
-).CornerRadius =
-	UDim.new(
-		0,
-		8
-	)
+Instance.new("UICorner", scan).CornerRadius =
+	UDim.new(0, 8)
 
 --======================================================
 -- INSTANT INTERACT
 --======================================================
 
-local instantInteract =
-	Instance.new("TextButton")
+local instantInteract = Instance.new("TextButton")
 
 instantInteract.Size =
-	UDim2.fromOffset(
-		250,
-		45
-	)
+	UDim2.fromOffset(250, 45)
 
 instantInteract.Position =
-	UDim2.fromOffset(
-		150,
-		125
-	)
+	UDim2.fromOffset(150, 125)
 
 instantInteract.AnchorPoint =
-	Vector2.new(
-		0.5,
-		0.5
-	)
+	Vector2.new(0.5, 0.5)
 
 instantInteract.BackgroundColor3 =
-	Color3.fromRGB(
-		35,
-		110,
-		220
-	)
+	Color3.fromRGB(35, 110, 220)
 
 instantInteract.Text =
 	"INSTANT INTERACT: OFF"
 
 instantInteract.TextColor3 =
-	Color3.new(
-		1,
-		1,
-		1
-	)
+	Color3.fromRGB(255, 255, 255)
 
-instantInteract.TextSize =
-	13
+instantInteract.TextSize = 13
 
 instantInteract.Font =
 	Enum.Font.GothamBold
 
-instantInteract.AutoButtonColor =
-	true
+instantInteract.AutoButtonColor = true
+instantInteract.Active = true
+instantInteract.Parent = window
 
-instantInteract.Active =
-	true
-
-instantInteract.Parent =
-	window
-
-Instance.new(
-		"UICorner",
-		instantInteract
-).CornerRadius =
-	UDim.new(
-		0,
-		8
-	)
+Instance.new("UICorner", instantInteract).CornerRadius =
+	UDim.new(0, 8)
 
 --======================================================
 -- DISCORD
 --======================================================
 
-local discordButton =
-	Instance.new("TextButton")
+local discordButton = Instance.new("TextButton")
 
 discordButton.Size =
-	UDim2.fromOffset(
-		250,
-		35
-	)
+	UDim2.fromOffset(250, 35)
 
 discordButton.Position =
-	UDim2.fromOffset(
-		150,
-		166
-	)
+	UDim2.fromOffset(150, 166)
 
 discordButton.AnchorPoint =
-	Vector2.new(
-		0.5,
-		0.5
-	)
+	Vector2.new(0.5, 0.5)
 
 discordButton.BackgroundColor3 =
-	Color3.fromRGB(
-		88,
-		101,
-		242
-	)
+	Color3.fromRGB(88, 101, 242)
 
 discordButton.Text =
 	"💬 JOIN DISCORD"
 
 discordButton.TextColor3 =
-	Color3.new(
-		1,
-		1,
-		1
-	)
+	Color3.fromRGB(255, 255, 255)
 
-discordButton.TextSize =
-	13
+discordButton.TextSize = 13
 
 discordButton.Font =
 	Enum.Font.GothamBold
 
-discordButton.AutoButtonColor =
-	true
+discordButton.AutoButtonColor = true
+discordButton.Active = true
+discordButton.Parent = window
 
-discordButton.Active =
-	true
-
-discordButton.Parent =
-	window
-
-Instance.new(
-		"UICorner",
-		discordButton
-).CornerRadius =
-	UDim.new(
-		0,
-		8
-	)
+Instance.new("UICorner", discordButton).CornerRadius =
+	UDim.new(0, 8)
 
 --======================================================
 -- STATUS
 --======================================================
 
-local status =
-	Instance.new("TextLabel")
+local status = Instance.new("TextLabel")
 
 status.Size =
-	UDim2.new(
-		1,
-		-20,
-		0,
-		28
-	)
+	UDim2.new(1, -20, 0, 28)
 
 status.Position =
-	UDim2.new(
-		0,
-		10,
-		1,
-		-33
-	)
+	UDim2.new(0, 10, 1, -33)
 
-status.BackgroundTransparency =
-	1
+status.BackgroundTransparency = 1
 
-status.Text =
-	"Ready."
+status.Text = "Ready."
 
 status.TextColor3 =
-	Color3.fromRGB(
-		190,
-		190,
-		190
-	)
+	Color3.fromRGB(190, 190, 190)
 
-status.TextSize =
-	11
+status.TextSize = 11
 
 status.Font =
 	Enum.Font.Gotham
 
-status.TextWrapped =
-	true
-
-status.Parent =
-	window
+status.TextWrapped = true
+status.Parent = window
 
 --======================================================
 -- MATCH TEXT
@@ -994,25 +660,12 @@ local function matches(text)
 		return false
 	end
 
-	text =
-		string.lower(
-			tostring(text)
-		)
+	text = string.lower(tostring(text))
 
 	return
-		string.find(
-			text,
-			"pumpkin",
-			1,
-			true
-		)
+		string.find(text, "pumpkin", 1, true)
 		or
-		string.find(
-			text,
-			"pick",
-			1,
-			true
-		)
+		string.find(text, "pick", 1, true)
 end
 
 --======================================================
@@ -1026,15 +679,12 @@ local function getPosition(object)
 	end
 
 	if object:IsA("BasePart") then
-
 		return object.Position
 
 	elseif object:IsA("Attachment") then
-
 		return object.WorldPosition
 
 	elseif object:IsA("Model") then
-
 		return object:GetPivot().Position
 	end
 
@@ -1047,11 +697,9 @@ end
 
 local function findTarget(prompt)
 
-	local current =
-		prompt
+	local current = prompt
 
-	while current
-		and current ~= Workspace do
+	while current and current ~= Workspace do
 
 		if current:IsA("Model")
 			and matches(current.Name) then
@@ -1063,8 +711,7 @@ local function findTarget(prompt)
 			return current
 		end
 
-		current =
-			current.Parent
+		current = current.Parent
 	end
 
 	return nil
@@ -1081,45 +728,29 @@ local function addHighlight(target)
 	end
 
 	local old =
-		target:FindFirstChild(
-			HIGHLIGHT_NAME
-		)
+		target:FindFirstChild(HIGHLIGHT_NAME)
 
 	if old then
 		old:Destroy()
 	end
 
-	local highlight =
-		Instance.new("Highlight")
+	local highlight = Instance.new("Highlight")
 
-	highlight.Name =
-		HIGHLIGHT_NAME
-
-	highlight.Adornee =
-		target
+	highlight.Name = HIGHLIGHT_NAME
+	highlight.Adornee = target
 
 	highlight.FillColor =
-		Color3.fromRGB(
-			255,
-			140,
-			0
-		)
+		Color3.fromRGB(255, 140, 0)
 
-	highlight.FillTransparency =
-		0.25
+	highlight.FillTransparency = 0.25
 
 	highlight.OutlineColor =
-		Color3.fromRGB(
-			255,
-			255,
-			0
-		)
+		Color3.fromRGB(255, 255, 0)
 
 	highlight.DepthMode =
 		Enum.HighlightDepthMode.AlwaysOnTop
 
-	highlight.Parent =
-		target
+	highlight.Parent = target
 end
 
 --======================================================
@@ -1128,8 +759,7 @@ end
 
 local function findNearestTarget()
 
-	local character =
-		player.Character
+	local character = player.Character
 
 	if not character then
 		return nil, nil
@@ -1144,14 +774,9 @@ local function findNearestTarget()
 		return nil, nil
 	end
 
-	local nearestPrompt =
-		nil
-
-	local nearestTarget =
-		nil
-
-	local nearestDistance =
-		math.huge
+	local nearestPrompt = nil
+	local nearestTarget = nil
+	local nearestDistance = math.huge
 
 	for _, object in ipairs(
 		Workspace:GetDescendants()
@@ -1161,30 +786,16 @@ local function findNearestTarget()
 			return nil, nil
 		end
 
-		if object:IsA(
-			"ProximityPrompt"
-		)
-		and object.Enabled then
+		if object:IsA("ProximityPrompt")
+			and object.Enabled then
 
 			local isMatch =
-				matches(
-					object.Name
-				)
-				or
-				matches(
-					object.ActionText
-				)
-				or
-				matches(
-					object.ObjectText
-				)
-				or
-				(
+				matches(object.Name)
+				or matches(object.ActionText)
+				or matches(object.ObjectText)
+				or (
 					object.Parent
-					and
-					matches(
-						object.Parent.Name
-					)
+					and matches(object.Parent.Name)
 				)
 
 			if isMatch then
@@ -1223,8 +834,7 @@ local function findNearestTarget()
 		end
 	end
 
-	return nearestPrompt,
-		nearestTarget
+	return nearestPrompt, nearestTarget
 end
 
 --======================================================
@@ -1251,15 +861,13 @@ local function interactWithPrompt(prompt)
 
 	if instantInteractEnabled then
 
-		if originalHoldDurations[prompt] ==
-			nil then
+		if originalHoldDurations[prompt] == nil then
 
 			originalHoldDurations[prompt] =
 				prompt.HoldDuration
 		end
 
-		prompt.HoldDuration =
-			0
+		prompt.HoldDuration = 0
 	end
 
 	prompt:InputHoldBegin()
@@ -1317,8 +925,7 @@ local function scanAndCollect()
 		return
 	end
 
-	if not prompt
-		or not target then
+	if not prompt or not target then
 
 		status.Text =
 			"❌ No Pumpkin/Pick found."
@@ -1341,8 +948,7 @@ local function scanAndCollect()
 
 	root.CFrame =
 		CFrame.new(
-			position +
-				TELEPORT_OFFSET
+			position + TELEPORT_OFFSET
 		)
 
 	status.Text =
@@ -1354,15 +960,12 @@ local function scanAndCollect()
 		return
 	end
 
-	if prompt.Parent
-		and prompt.Enabled then
+	if prompt.Parent and prompt.Enabled then
 
 		status.Text =
 			"⚡ Picking up target..."
 
-		interactWithPrompt(
-			prompt
-		)
+		interactWithPrompt(prompt)
 
 	else
 
@@ -1381,8 +984,7 @@ local function startAutoScan()
 		return
 	end
 
-	autoScanRunning =
-		true
+	autoScanRunning = true
 
 	task.spawn(function()
 
@@ -1391,15 +993,11 @@ local function startAutoScan()
 			scanAndCollect()
 
 			if autoScanEnabled then
-
-				task.wait(
-					SCAN_DELAY
-				)
+				task.wait(SCAN_DELAY)
 			end
 		end
 
-		autoScanRunning =
-			false
+		autoScanRunning = false
 
 		status.Text =
 			"⏹️ Auto scan stopped."
@@ -1412,33 +1010,27 @@ end
 
 local function setInstantInteract(enabled)
 
-	instantInteractEnabled =
-		enabled
+	instantInteractEnabled = enabled
 
 	for _, object in ipairs(
 		Workspace:GetDescendants()
 	) do
 
-		if object:IsA(
-			"ProximityPrompt"
-		) then
+		if object:IsA("ProximityPrompt") then
 
 			if enabled then
 
-				if originalHoldDurations[object] ==
-					nil then
+				if originalHoldDurations[object] == nil then
 
 					originalHoldDurations[object] =
 						object.HoldDuration
 				end
 
-				object.HoldDuration =
-					0
+				object.HoldDuration = 0
 
 			else
 
-				if originalHoldDurations[object] ~=
-					nil then
+				if originalHoldDurations[object] ~= nil then
 
 					object.HoldDuration =
 						originalHoldDurations[object]
@@ -1453,11 +1045,7 @@ local function setInstantInteract(enabled)
 			"INSTANT INTERACT: ON"
 
 		instantInteract.BackgroundColor3 =
-			Color3.fromRGB(
-				25,
-				170,
-				80
-			)
+			Color3.fromRGB(25, 170, 80)
 
 	else
 
@@ -1465,11 +1053,7 @@ local function setInstantInteract(enabled)
 			"INSTANT INTERACT: OFF"
 
 		instantInteract.BackgroundColor3 =
-			Color3.fromRGB(
-				35,
-				110,
-				220
-			)
+			Color3.fromRGB(35, 110, 220)
 	end
 end
 
@@ -1477,175 +1061,143 @@ end
 -- NEW PROMPTS
 --======================================================
 
-Workspace.DescendantAdded:Connect(
-	function(object)
+Workspace.DescendantAdded:Connect(function(object)
 
-		if object:IsA(
-			"ProximityPrompt"
-		)
+	if object:IsA("ProximityPrompt")
 		and instantInteractEnabled then
 
-			originalHoldDurations[object] =
-				object.HoldDuration
+		originalHoldDurations[object] =
+			object.HoldDuration
 
-			object.HoldDuration =
-				0
-		end
+		object.HoldDuration = 0
 	end
-)
+end)
 
 --======================================================
 -- DISCORD
 --======================================================
 
-discordButton.MouseButton1Click:Connect(
-	function()
+discordButton.MouseButton1Click:Connect(function()
 
-		if typeof(setclipboard) ==
-			"function" then
+	if typeof(setclipboard) == "function" then
 
-			setclipboard(
-				DISCORD_LINK
-			)
+		setclipboard(DISCORD_LINK)
 
-			status.Text =
-				"💬 Discord link copied!"
+		status.Text =
+			"💬 Discord link copied!"
 
-		else
+	else
 
-			status.Text =
-				DISCORD_LINK
-		end
+		status.Text =
+			DISCORD_LINK
 	end
-)
+end)
 
 --======================================================
 -- CLOSE
 --======================================================
 
-close.MouseButton1Click:Connect(
-	function()
+close.MouseButton1Click:Connect(function()
 
-		autoScanEnabled =
-			false
+	autoScanEnabled = false
 
-		scan.Text =
-			"🎃 AUTO SCAN: OFF"
+	scan.Text =
+		"🎃 AUTO SCAN: OFF"
 
-		scan.BackgroundColor3 =
-			Color3.fromRGB(
-				45,
-				145,
-				70
-			)
+	scan.BackgroundColor3 =
+		Color3.fromRGB(45, 145, 70)
 
-		status.Text =
-			"⏹️ Auto scan stopped."
+	status.Text =
+		"⏹️ Auto scan stopped."
 
-		window.Visible =
-			false
+	window.Visible = false
 
-		toggle.Text =
-			"OPEN SCANNER"
-	end
-)
+	toggle.Text =
+		"OPEN SCANNER"
+end)
 
 --======================================================
 -- OPEN / CLOSE
 --======================================================
 
-toggle.MouseButton1Click:Connect(
-	function()
+toggle.MouseButton1Click:Connect(function()
 
-		window.Visible =
-			not window.Visible
+	window.Visible =
+		not window.Visible
 
-		if window.Visible then
+	if window.Visible then
 
-			toggle.Text =
-				"CLOSE SCANNER"
+		toggle.Text =
+			"CLOSE SCANNER"
 
-		else
+	else
 
-			toggle.Text =
-				"OPEN SCANNER"
-		end
+		toggle.Text =
+			"OPEN SCANNER"
 	end
-)
+end)
 
 --======================================================
 -- AUTO SCAN TOGGLE
 --======================================================
 
-scan.MouseButton1Click:Connect(
-	function()
+scan.MouseButton1Click:Connect(function()
 
-		autoScanEnabled =
-			not autoScanEnabled
+	autoScanEnabled =
+		not autoScanEnabled
 
-		if autoScanEnabled then
+	if autoScanEnabled then
 
-			scan.Text =
-				"🎃 AUTO SCAN: ON"
+		scan.Text =
+			"🎃 AUTO SCAN: ON"
 
-			scan.BackgroundColor3 =
-				Color3.fromRGB(
-					25,
-					170,
-					80
-				)
+		scan.BackgroundColor3 =
+			Color3.fromRGB(25, 170, 80)
 
-			status.Text =
-				"⚡ Scanning..."
+		status.Text =
+			"⚡ Scanning..."
 
-			startAutoScan()
+		startAutoScan()
 
-		else
+	else
 
-			scan.Text =
-				"🎃 AUTO SCAN: OFF"
+		scan.Text =
+			"🎃 AUTO SCAN: OFF"
 
-			scan.BackgroundColor3 =
-				Color3.fromRGB(
-					45,
-					145,
-					70
-				)
+		scan.BackgroundColor3 =
+			Color3.fromRGB(45, 145, 70)
 
-			status.Text =
-				"⏹️ Auto scan stopped."
-		end
+		status.Text =
+			"⏹️ Auto scan stopped."
 	end
-)
+end)
 
 --======================================================
 -- INSTANT INTERACT TOGGLE
 --======================================================
 
-instantInteract.MouseButton1Click:Connect(
-	function()
+instantInteract.MouseButton1Click:Connect(function()
 
-		setInstantInteract(
-			not instantInteractEnabled
-		)
+	setInstantInteract(
+		not instantInteractEnabled
+	)
 
-		if instantInteractEnabled then
+	if instantInteractEnabled then
 
-			status.Text =
-				"⚡ Instant interact enabled."
+		status.Text =
+			"⚡ Instant interact enabled."
 
-		else
+	else
 
-			status.Text =
-				"Instant interact disabled."
-		end
+		status.Text =
+			"Instant interact disabled."
 	end
-)
+end)
 
 --======================================================
 -- DONE
 --======================================================
 
 print(
-	"[Lazer] All-in-one scanner loaded."
+	"[Lazer] Complete script loaded."
 )
